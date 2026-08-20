@@ -23,7 +23,7 @@ gives it a real dedicated public IP (so ntfy.sh won't block it) at $0/month.
 SSH in (`ssh ubuntu@<public-ip>`), then run:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/spoigai21/jobscraper/main/deploy/setup.sh | bash
+curl -fsSL https://raw.githubusercontent.com/spoigai21/internship-monitor/main/deploy/setup.sh | bash
 ```
 
 This installs Python, clones the repo to `/opt/jobscraper`, builds the venv,

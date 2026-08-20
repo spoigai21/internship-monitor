@@ -2,7 +2,7 @@
 # One-shot setup for the internship monitor on a fresh Ubuntu VM
 # (Oracle Cloud Always Free, or any Linux box). Idempotent: re-run to update.
 #
-#   curl -fsSL https://raw.githubusercontent.com/spoigai21/jobscraper/main/deploy/setup.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/spoigai21/internship-monitor/main/deploy/setup.sh | bash
 #   # ...or clone the repo and run: bash deploy/setup.sh
 #
 # The monitor is outbound-only (scrapes career pages, publishes to ntfy).
@@ -10,7 +10,7 @@
 set -euo pipefail
 
 APP_DIR="${APP_DIR:-/opt/jobscraper}"
-REPO="${REPO:-https://github.com/spoigai21/jobscraper.git}"
+REPO="${REPO:-https://github.com/spoigai21/internship-monitor.git}"
 RUN_USER="${RUN_USER:-$(id -un)}"
 
 echo ">> Installing system packages (python3, venv, git)..."
