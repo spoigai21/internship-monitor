@@ -32,6 +32,52 @@ class TestRelativityBoard:
         assert company.enabled is True
 
 
+class TestJPMorganChaseBoard:
+    def test_uses_oracle_recruiting_api(self) -> None:
+        company = _company("JPMorgan Chase")
+
+        assert company.url == (
+            "https://jpmc.fa.oraclecloud.com/hcmRestApi/resources/latest"
+            "/recruitingCEJobRequisitions?siteNumber=CX_1&keyword=internship"
+        )
+        assert detect_board_type(company.url) == BoardType.ORACLE
+        assert company.enabled is True
+
+
+class TestDisneyBoard:
+    def test_uses_workday_cxs_api(self) -> None:
+        company = _company("Disney")
+
+        assert company.url == (
+            "https://disney.wd5.myworkdayjobs.com/wday/cxs/disney/disneycareer/jobs"
+            "?searchText=intern"
+        )
+        assert detect_board_type(company.url) == BoardType.WORKDAY
+        assert company.enabled is True
+
+
+class TestServiceNowBoard:
+    def test_uses_smartrecruiters_postings_api(self) -> None:
+        company = _company("ServiceNow")
+
+        assert company.url == (
+            "https://api.smartrecruiters.com/v1/companies/ServiceNow/postings?limit=100"
+        )
+        assert detect_board_type(company.url) == BoardType.SMARTRECRUITERS
+        assert company.enabled is True
+
+
+class TestTriNetBoard:
+    def test_uses_eightfold_pcsx_search(self) -> None:
+        company = _company("TriNet")
+
+        assert company.url == (
+            "https://jobs.trinet.com/api/pcsx/search?domain=trinet.com&query=intern"
+        )
+        assert detect_board_type(company.url) == BoardType.MICROSOFT
+        assert company.enabled is True
+
+
 class TestMetaBoard:
     def test_uses_graphql_jobsearch(self) -> None:
         company = _company("Meta")

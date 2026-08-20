@@ -15,7 +15,12 @@ from monitor.parsers.bytedance import is_bytedance_jobs_url, parse_bytedance
 from monitor.parsers.google import is_google_careers_url, parse_google, parse_google_html
 from monitor.parsers.hubspot import is_hubspot_jobs_url, parse_hubspot
 from monitor.parsers.meta import is_meta_jobs_url, parse_meta
+from monitor.parsers.oracle import is_oracle_recruiting_url, parse_oracle
 from monitor.parsers.simplify import is_simplify_url, parse_simplify
+from monitor.parsers.smartrecruiters import (
+    is_smartrecruiters_url,
+    parse_smartrecruiters,
+)
 from monitor.parsers.tiktok import is_tiktok_jobs_url, parse_tiktok
 
 __all__ = [
@@ -38,8 +43,10 @@ __all__ = [
     "parse_job_board",
     "parse_lever",
     "parse_meta",
+    "parse_oracle",
     "parse_microsoft",
     "parse_simplify",
+    "parse_smartrecruiters",
     "parse_tiktok",
     "parse_uber",
     "parse_workday",
@@ -60,6 +67,8 @@ class BoardType(str, Enum):
     BYTEDANCE = "bytedance"
     TIKTOK = "tiktok"
     HUBSPOT = "hubspot"
+    ORACLE = "oracle"
+    SMARTRECRUITERS = "smartrecruiters"
     SIMPLIFY = "simplify"
     HTML = "html"
     UNKNOWN = "unknown"
@@ -151,6 +160,10 @@ def detect_board_type(url: str) -> BoardType:
         return BoardType.TIKTOK
     if is_hubspot_jobs_url(url):
         return BoardType.HUBSPOT
+    if is_oracle_recruiting_url(url):
+        return BoardType.ORACLE
+    if is_smartrecruiters_url(url):
+        return BoardType.SMARTRECRUITERS
     if is_simplify_url(url):
         return BoardType.SIMPLIFY
     if url.startswith(("http://", "https://")):
@@ -477,6 +490,10 @@ def parse_job_board(
         return parse_tiktok(raw_json, company_name)
     if board_type == BoardType.HUBSPOT:
         return parse_hubspot(raw_json, company_name)
+    if board_type == BoardType.ORACLE:
+        return parse_oracle(raw_json, company_name, board_url=url)
+    if board_type == BoardType.SMARTRECRUITERS:
+        return parse_smartrecruiters(raw_json, company_name, board_url=url)
     if board_type == BoardType.SIMPLIFY:
         return parse_simplify(raw_json, company_name)
     return []

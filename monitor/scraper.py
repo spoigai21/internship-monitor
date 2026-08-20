@@ -38,6 +38,15 @@ from monitor.parsers.google import fetch_google_search_raw, is_google_careers_ur
 from monitor.parsers.hubspot import fetch_hubspot_jobs_raw, is_hubspot_jobs_url
 from monitor.parsers.meta import fetch_meta_search_raw, is_meta_jobs_url
 from monitor.parsers.nasa import is_nasa_company, nasa_jobs_to_text, parse_nasa_html
+from monitor.parsers.oracle import (
+    ORACLE_PAGE_LIMIT,
+    is_oracle_recruiting_url,
+    oracle_page_params,
+)
+from monitor.parsers.smartrecruiters import (
+    SMARTRECRUITERS_PAGE_LIMIT,
+    is_smartrecruiters_url,
+)
 from monitor.parsers.tesla import (
     TeslaScraper,
     is_tesla_company,
@@ -214,6 +223,8 @@ class CareerPageScraper:
             BoardType.BYTEDANCE,
             BoardType.TIKTOK,
             BoardType.HUBSPOT,
+            BoardType.ORACLE,
+            BoardType.SMARTRECRUITERS,
             BoardType.SIMPLIFY,
         )
 
@@ -274,6 +285,8 @@ class CareerPageScraper:
                 "/api/apply/v2/jobs",
                 "jobs.bytedance.com/api/v1/search/job/posts",
                 "api.lifeattiktok.com",
+                "recruitingcejobrequisitions",
+                "api.smartrecruiters.com",
                 "raw.githubusercontent.com/simplifyjobs",
             )
         )
@@ -422,6 +435,115 @@ class CareerPageScraper:
             {
                 "jobPostings": all_postings,
                 "total": total if total is not None else len(all_postings),
+            }
+        )
+
+    def _fetch_oracle(self, url: str, headers: dict[str, str]) -> str:
+        """Paginate an Oracle Recruiting requisition search into one JSON blob.
+
+        The endpoint reports ``TotalJobsCount`` but silently returns short pages
+        past the end of the result set, so an empty page also ends the walk.
+        """
+        request_url = url.split("?", 1)[0]
+        all_requisitions: list[dict] = []
+        total: int | None = None
+        offset = 0
+        pages_fetched = 0
+
+        while True:
+            pages_fetched += 1
+            if pages_fetched > _MAX_PAGINATION_PAGES:
+                logger.warning(
+                    "Oracle pagination stopped at %d pages for %s",
+                    _MAX_PAGINATION_PAGES,
+                    url,
+                )
+                break
+
+            response = requests.get(
+                request_url,
+                params=oracle_page_params(url, offset),
+                headers=headers,
+                timeout=self._settings.request_timeout,
+            )
+            response.raise_for_status()
+            items = response.json().get("items") or []
+            envelope = items[0] if items and isinstance(items[0], dict) else {}
+            if total is None and isinstance(envelope.get("TotalJobsCount"), int):
+                total = envelope["TotalJobsCount"]
+
+            batch = [
+                row
+                for row in envelope.get("requisitionList") or []
+                if isinstance(row, dict)
+            ]
+            if not batch:
+                break
+
+            all_requisitions.extend(batch)
+
+            if len(batch) < ORACLE_PAGE_LIMIT:
+                break
+            if total is not None and len(all_requisitions) >= total:
+                break
+
+            offset += ORACLE_PAGE_LIMIT
+            time.sleep(PAGE_FETCH_DELAY_SECONDS)
+
+        return json.dumps(
+            {
+                "requisitionList": all_requisitions,
+                "TotalJobsCount": total if total is not None else len(all_requisitions),
+            }
+        )
+
+    def _fetch_smartrecruiters(self, url: str, headers: dict[str, str]) -> str:
+        """Paginate a SmartRecruiters postings list into one JSON blob."""
+        request_url = url.split("?", 1)[0]
+        all_postings: list[dict] = []
+        total: int | None = None
+        offset = 0
+        pages_fetched = 0
+
+        while True:
+            pages_fetched += 1
+            if pages_fetched > _MAX_PAGINATION_PAGES:
+                logger.warning(
+                    "SmartRecruiters pagination stopped at %d pages for %s",
+                    _MAX_PAGINATION_PAGES,
+                    url,
+                )
+                break
+
+            response = requests.get(
+                request_url,
+                params={"limit": SMARTRECRUITERS_PAGE_LIMIT, "offset": offset},
+                headers=headers,
+                timeout=self._settings.request_timeout,
+            )
+            response.raise_for_status()
+            data = response.json()
+            if total is None and isinstance(data.get("totalFound"), int):
+                total = data["totalFound"]
+
+            batch = [job for job in data.get("content") or [] if isinstance(job, dict)]
+            if not batch:
+                break
+
+            all_postings.extend(batch)
+
+            if len(batch) < SMARTRECRUITERS_PAGE_LIMIT:
+                break
+            if total is not None and len(all_postings) >= total:
+                break
+
+            offset += SMARTRECRUITERS_PAGE_LIMIT
+            time.sleep(PAGE_FETCH_DELAY_SECONDS)
+
+        return json.dumps(
+            {
+                "content": all_postings,
+                "totalFound": total if total is not None else len(all_postings),
             }
         )
 
@@ -640,6 +762,9 @@ class CareerPageScraper:
         elif is_hubspot_jobs_url(url):
             jobs = parse_job_board(raw, url, "")
             return jobs_to_text(jobs)
+        elif is_oracle_recruiting_url(url) or is_smartrecruiters_url(url):
+            jobs = parse_job_board(raw, url, "")
+            return jobs_to_text(jobs)
 
         return " ".join(part for part in parts if part).lower()
 
@@ -671,6 +796,10 @@ class CareerPageScraper:
                     return self._fetch_workday(url, headers, request_url)
                 if self._is_uber_jobs_api_url(url):
                     return self._fetch_uber(url, headers)
+                if is_oracle_recruiting_url(url):
+                    return self._fetch_oracle(url, headers)
+                if is_smartrecruiters_url(url):
+                    return self._fetch_smartrecruiters(url, headers)
                 if self._is_eightfold_jobs_url(url):
                     try:
                         return self._fetch_microsoft(url, headers)

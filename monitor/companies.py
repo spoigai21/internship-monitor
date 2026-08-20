@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from monitor.models import CompanyConfig
+from monitor.parsers.oracle import oracle_requisitions_url
 from monitor.parsers.simplify import simplify_listings_url
+from monitor.parsers.smartrecruiters import smartrecruiters_postings_url
 
 def intern_cycle_keywords_for_year(year: int) -> list[str]:
     """Seasonal phrases and bare year for the target cycle, plus prior-fall and
@@ -542,6 +544,37 @@ COMPANIES: list[CompanyConfig] = [
         level_keywords=STRICT_INTERN_LEVEL_KEYWORDS,
         cycle_keywords=INTERN_CYCLE_KEYWORDS,
         enabled=False,  # Akamai Bot Manager blocks datacenter fetches (403/429/challenge)
+    ),
+    CompanyConfig(
+        name="JPMorgan Chase",
+        url=oracle_requisitions_url("jpmc", "CX_1", "internship"),
+        level_keywords=INTERN_LEVEL_KEYWORDS,
+        cycle_keywords=INTERN_CYCLE_KEYWORDS,
+        enabled=True,  # Oracle Recruiting CE API; student programs share the main board
+    ),
+    CompanyConfig(
+        name="Disney",
+        url=(
+            "https://disney.wd5.myworkdayjobs.com/wday/cxs/disney/disneycareer/jobs"
+            "?searchText=intern"
+        ),
+        level_keywords=INTERN_LEVEL_KEYWORDS,
+        cycle_keywords=INTERN_CYCLE_KEYWORDS,
+        enabled=True,  # Workday cxs API behind disneycareers.com; searchText is advisory
+    ),
+    CompanyConfig(
+        name="ServiceNow",
+        url=smartrecruiters_postings_url("ServiceNow"),
+        level_keywords=INTERN_LEVEL_KEYWORDS,
+        cycle_keywords=INTERN_CYCLE_KEYWORDS,
+        enabled=True,  # SmartRecruiters public postings API (careers.servicenow.com)
+    ),
+    CompanyConfig(
+        name="TriNet",
+        url="https://jobs.trinet.com/api/pcsx/search?domain=trinet.com&query=intern",
+        level_keywords=INTERN_LEVEL_KEYWORDS,
+        cycle_keywords=INTERN_CYCLE_KEYWORDS,
+        enabled=True,  # Eightfold PCSX search API (jobs.trinet.com SPA front-end)
     ),
     CompanyConfig(
         name="TikTok",

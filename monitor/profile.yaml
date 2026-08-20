@@ -180,6 +180,8 @@ prestige:
     - Muon Space
     - Astranis
     - CrowdStrike
+    - JPMorgan Chase
+    - ServiceNow
     - JPL
     - John Deere
     - Tesla
@@ -196,6 +198,7 @@ prestige:
     - Adobe
     - ByteDance
     - TikTok
+    - Disney
 
 scoring:
   title_dream_role: 4
