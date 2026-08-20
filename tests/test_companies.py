@@ -56,6 +56,29 @@ class TestDisneyBoard:
         assert company.enabled is True
 
 
+class TestComcastBoard:
+    def test_uses_workday_cxs_api(self) -> None:
+        company = _company("Comcast")
+
+        assert company.url == (
+            "https://comcast.wd5.myworkdayjobs.com/wday/cxs/comcast/Comcast_Careers/jobs"
+            "?searchText=intern"
+        )
+        assert detect_board_type(company.url) == BoardType.WORKDAY
+        assert company.enabled is True
+
+
+class TestPayPalBoard:
+    def test_uses_eightfold_pcsx_search(self) -> None:
+        company = _company("PayPal")
+
+        assert company.url == (
+            "https://paypal.eightfold.ai/api/pcsx/search?domain=paypal.com&query=intern"
+        )
+        assert detect_board_type(company.url) == BoardType.MICROSOFT
+        assert company.enabled is True
+
+
 class TestServiceNowBoard:
     def test_uses_smartrecruiters_postings_api(self) -> None:
         company = _company("ServiceNow")

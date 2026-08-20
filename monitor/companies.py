@@ -563,6 +563,23 @@ COMPANIES: list[CompanyConfig] = [
         enabled=True,  # Workday cxs API behind disneycareers.com; searchText is advisory
     ),
     CompanyConfig(
+        name="Comcast",
+        url=(
+            "https://comcast.wd5.myworkdayjobs.com/wday/cxs/comcast/Comcast_Careers/jobs"
+            "?searchText=intern"
+        ),
+        level_keywords=INTERN_LEVEL_KEYWORDS,
+        cycle_keywords=INTERN_CYCLE_KEYWORDS,
+        enabled=True,  # Workday cxs API; rejects limit 50, so the 20 fallback applies
+    ),
+    CompanyConfig(
+        name="PayPal",
+        url="https://paypal.eightfold.ai/api/pcsx/search?domain=paypal.com&query=intern",
+        level_keywords=INTERN_LEVEL_KEYWORDS,
+        cycle_keywords=INTERN_CYCLE_KEYWORDS,
+        enabled=True,  # Eightfold PCSX search API (careers.pypl.com blocks direct fetches)
+    ),
+    CompanyConfig(
         name="ServiceNow",
         url=smartrecruiters_postings_url("ServiceNow"),
         level_keywords=INTERN_LEVEL_KEYWORDS,
