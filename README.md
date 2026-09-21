@@ -298,3 +298,7 @@ Run the scraper unit tests with pytest:
 ```bash
 pytest tests/
 ```
+
+## License
+
+Released under the [MIT License](LICENSE).
